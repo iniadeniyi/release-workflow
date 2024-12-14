@@ -18,9 +18,7 @@ jobs:
       - name: Get Release Notes
         id: release_notes
         run: |
-          git fetch --tags
-
-          last_tag=$(git describe --tags git rev-list --tags --max-count=1 2>/dev/null || echo "")
+          last_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
 
           if [ -z "$last_tag" ]; then
             commits=$(git log --pretty=format:"- %s")
@@ -35,9 +33,7 @@ jobs:
       - name: Generate Next Version Tag
         id: versioning
         run: |
-          git fetch --tags
-
-          latest=$(git describe --tags git rev-list --tags --max-count=1 2>/dev/null || echo "v0.0.0")
+          latest=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
 
           major=$(echo $latest | awk -F. '{print $1}' | tr -d 'v')
           minor=$(echo $latest | awk -F. '{print $2}')
