@@ -15,12 +15,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get Last Tag
+        id: last_tag
+        run: |
+          latest=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
+
+          echo "last_tag=$latest" >> $GITHUB_ENV
+
       - name: Get Release Notes
         id: release_notes
         run: |
-          last_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+          last_tag=${{ env.last_tag }}
 
-          if [ -z "$last_tag" ]; then
+          if [ "$last_tag" = "v0.0.0" ]; then
             commits=$(git log --pretty=format:"- %s")
           else
             commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
@@ -33,11 +40,11 @@ jobs:
       - name: Generate Next Version Tag
         id: versioning
         run: |
-          latest=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
+          last_tag=${{ env.last_tag }}
 
-          major=$(echo $latest | awk -F. '{print $1}' | tr -d 'v')
-          minor=$(echo $latest | awk -F. '{print $2}')
-          patch=$(echo $latest | awk -F. '{print $3}')
+          major=$(echo $last_tag | awk -F. '{print $1}' | tr -d 'v')
+          minor=$(echo $last_tag | awk -F. '{print $2}')
+          patch=$(echo $last_tag | awk -F. '{print $3}')
 
           next_patch=$((patch + 1))
 
