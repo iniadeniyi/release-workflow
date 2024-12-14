@@ -18,7 +18,9 @@ jobs:
       - name: Get Release Notes
         id: release_notes
         run: |
-          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          git fetch --tags
+
+          last_tag=$(git describe --tags git rev-list --tags --max-count=1 2>/dev/null || echo "")
 
           if [ -z "$last_tag" ]; then
             commits=$(git log --pretty=format:"- %s")
@@ -33,7 +35,9 @@ jobs:
       - name: Generate Next Version Tag
         id: versioning
         run: |
-          latest=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          git fetch --tags
+
+          latest=$(git describe --tags git rev-list --tags --max-count=1 2>/dev/null || echo "v0.0.0")
 
           major=$(echo $latest | awk -F. '{print $1}' | tr -d 'v')
           minor=$(echo $latest | awk -F. '{print $2}')
@@ -45,12 +49,20 @@ jobs:
 
           echo "next_version=$next_version" >> $GITHUB_ENV
 
-      - name: Show Tag
+      - name: Create Tag
         run: |
-          echo "Tag:"
-          echo -e "${{ env.next_version }}"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag -a ${{ env.next_version }} -m "Release version ${{ env.next_version }}"
+          git push origin ${{ env.next_version }}
 
-      - name: Show Release Notes
-        run: |
-          echo "Release Notes:"
-          echo -e "${{ fromJSON(env.release_notes) }}"
+      - name: Create GitHub Release
+        uses: actions/create-release@v1.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.next_version }}
+          release_name: "Release ${{ env.next_version }}"
+          body: ${{ fromJSON(env.release_notes) }}
+          draft: false
+          prerelease: false
