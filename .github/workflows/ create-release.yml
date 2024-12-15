@@ -40,6 +40,26 @@ jobs:
       - name: Generate Next Version Tag
         id: versioning
         run: |
+          release_notes=${{ env.release_notes }}
+
+          hasMajor=0
+          hasMinor=0
+          hasPatch=0
+
+          while IFS= read -r line; do
+            if [[ $line == *BREAKING* ]]; then
+              hasMajor=1
+            elif [[ $line == feat:* ]]; then
+              hasMinor=1
+            elif [[ $line == fix:* ]]; then
+              hasPatch=1
+            fi
+          done <<< "$release_notes"
+
+          echo "$hasMajor"
+          echo "$hasMinor"
+          echo "$hasPatch"
+
           last_tag=${{ env.last_tag }}
 
           major=$(echo $last_tag | awk -F. '{print $1}' | tr -d 'v')
