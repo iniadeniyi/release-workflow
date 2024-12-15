@@ -40,15 +40,40 @@ jobs:
       - name: Generate Next Version Tag
         id: versioning
         run: |
+          release_notes=${{ env.release_notes }}
+
+          hasMajor=0
+          hasMinor=0
+          hasPatch=0
+
+          while IFS= read -r line; do
+            echo "Processing line: $line"
+
+            if [[ $line == *BREAKING* ]]; then
+              hasMajor=1
+            elif [[ $line == "- feat:"* ]]; then
+              hasMinor=1
+            elif [[ $line == "- fix:"* ]]; then
+              hasPatch=1
+            fi
+          done <<< "$release_notes"
+
           last_tag=${{ env.last_tag }}
 
           major=$(echo $last_tag | awk -F. '{print $1}' | tr -d 'v')
           minor=$(echo $last_tag | awk -F. '{print $2}')
           patch=$(echo $last_tag | awk -F. '{print $3}')
 
-          next_patch=$((patch + 1))
-
-          next_version="v${major}.${minor}.${next_patch}"
+          if [[ $hasMajor -eq 1 ]]; then
+            next_major=$((major + 1))
+            next_version="v${next_major}.0.0"
+          elif [[ $hasMinor -eq 1 ]]; then
+            next_minor=$((minor + 1))
+            next_version="v${major}.${next_minor}.0"
+          else
+            next_patch=$((patch + 1))
+            next_version="v${major}.${minor}.${next_patch}"
+          fi
 
           echo "next_version=$next_version" >> $GITHUB_ENV
 
