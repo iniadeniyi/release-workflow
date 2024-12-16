@@ -66,13 +66,13 @@ jobs:
 
           if [[ $hasMajor -eq 1 ]]; then
             next_major=$((major + 1))
-            next_version="v${next_major}.0.0"
+            next_version="v${next_major}.0.0-beta"
           elif [[ $hasMinor -eq 1 ]]; then
             next_minor=$((minor + 1))
-            next_version="v${major}.${next_minor}.0"
+            next_version="v${major}.${next_minor}.0-beta"
           else
             next_patch=$((patch + 1))
-            next_version="v${major}.${minor}.${next_patch}"
+            next_version="v${major}.${minor}.${next_patch}-beta"
           fi
 
           echo "next_version=$next_version" >> $GITHUB_ENV
