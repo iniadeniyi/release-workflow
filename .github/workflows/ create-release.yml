@@ -60,9 +60,11 @@ jobs:
 
           last_tag=${{ env.last_tag }}
 
-          major=$(echo $last_tag | awk -F. '{print $1}' | tr -d 'v')
-          minor=$(echo $last_tag | awk -F. '{print $2}')
-          patch=$(echo $last_tag | awk -F. '{print $3}')
+          base_tag=$(echo "$last_tag" | sed 's/-beta//')
+
+          major=$(echo $base_tag | awk -F. '{print $1}' | tr -d 'v')
+          minor=$(echo $base_tag | awk -F. '{print $2}')
+          patch=$(echo $base_tag | awk -F. '{print $3}')
 
           if [[ $hasMajor -eq 1 ]]; then
             next_major=$((major + 1))
